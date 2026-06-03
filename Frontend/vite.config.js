@@ -8,9 +8,10 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:5000',
+        target: process.env.VITE_API_URL ? process.env.VITE_API_URL.replace(/\/api\/?$/, '') : 'http://localhost:4000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        // Keep the '/api' prefix so backend routes mounted at '/api' continue to work
+        rewrite: (path) => path,
       },
     },
   },

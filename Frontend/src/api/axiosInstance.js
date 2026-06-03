@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -13,7 +13,8 @@ const axiosInstance = axios.create({
 // Add token to requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem(import.meta.env.VITE_JWT_STORAGE_KEY);
+    const tokenKey = import.meta.env.VITE_JWT_STORAGE_KEY || 'slughub_token';
+    const token = localStorage.getItem(tokenKey);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
