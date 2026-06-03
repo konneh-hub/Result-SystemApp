@@ -3,6 +3,8 @@ const { query } = require('../config/db');
 const { logAction } = require('../utils/logger');
 const ConflictError = require('../exceptions/ConflictError');
 const NotFoundError = require('../exceptions/NotFoundError');
+const ValidationError = require('../exceptions/ValidationError');
+const { ROLE_PERMISSIONS } = require('../constants/permissions');
 
 const getAllUsers = async (page = 1, limit = 20) => {
   const offset = (page - 1) * limit;
@@ -23,6 +25,10 @@ const createUser = async (email, password, role) => {
     throw new ConflictError('Email already exists');
   }
 
+  if (!ROLE_PERMISSIONS[role]) {
+    throw new ValidationError('Invalid role');
+  }
+
   const hashedPassword = await bcrypt.hash(password, 12);
   const result = await query(
     'INSERT INTO users (email, password, role, is_active, created_at) VALUES (?, ?, ?, ?, NOW())',
@@ -34,6 +40,11 @@ const createUser = async (email, password, role) => {
 };
 
 const updateUser = async (userId, updates) => {
+  const found = await query('SELECT id FROM users WHERE id = ?', [userId]);
+  if (!found.length) {
+    throw new NotFoundError('User not found');
+  }
+
   const { email, password, role, is_active } = updates;
   const updateFields = [];
   const params = [];
@@ -48,6 +59,9 @@ const updateUser = async (userId, updates) => {
   }
 
   if (role) {
+    if (!ROLE_PERMISSIONS[role]) {
+      throw new ValidationError('Invalid role');
+    }
     updateFields.push('role = ?');
     params.push(role);
   }
@@ -73,6 +87,11 @@ const updateUser = async (userId, updates) => {
 };
 
 const deactivateUser = async (userId) => {
+  const found = await query('SELECT id FROM users WHERE id = ?', [userId]);
+  if (!found.length) {
+    throw new NotFoundError('User not found');
+  }
+
   await query('UPDATE users SET is_active = 0 WHERE id = ?', [userId]);
   logAction('User deactivated', { userId });
 };
