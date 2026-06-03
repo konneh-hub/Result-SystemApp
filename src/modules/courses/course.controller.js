@@ -1,10 +1,21 @@
 const { query } = require('../../config/db');
 const { logAction } = require('../../utils/logger');
+const ValidationError = require('../../exceptions/ValidationError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 const getCourses = async (req, res, next) => {
   try {
-    const courses = await query('SELECT * FROM courses WHERE deleted_at IS NULL');
-    res.status(200).json({ courses });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 20);
+    const offset = (page - 1) * limit;
+
+    const courses = await query('SELECT * FROM courses WHERE deleted_at IS NULL LIMIT ? OFFSET ?', [limit, offset]);
+    const total = await query('SELECT COUNT(*) as count FROM courses WHERE deleted_at IS NULL');
+
+    res.status(200).json({
+      courses,
+      pagination: { page, limit, total: total[0].count },
+    });
   } catch (error) {
     next(error);
   }
@@ -14,7 +25,7 @@ const createCourse = async (req, res, next) => {
   try {
     const { code, title, credit_unit, department, faculty } = req.body;
     if (!code || !title || !credit_unit) {
-      return res.status(400).json({ message: 'Code, title, and credit unit are required' });
+      throw new ValidationError('Code, title, and credit unit are required');
     }
 
     const result = await query(
@@ -44,7 +55,7 @@ const updateCourse = async (req, res, next) => {
     });
 
     if (!updates.length) {
-      return res.status(400).json({ message: 'No fields provided for update' });
+      throw new ValidationError('No fields provided for update');
     }
 
     params.push(courseId);
@@ -72,7 +83,7 @@ const assignLecturer = async (req, res, next) => {
   try {
     const { course_id, lecturer_id } = req.body;
     if (!course_id || !lecturer_id) {
-      return res.status(400).json({ message: 'Course ID and lecturer ID are required' });
+      throw new ValidationError('Course ID and lecturer ID are required');
     }
 
     await query('UPDATE courses SET lecturer_id = ? WHERE id = ?', [lecturer_id, course_id]);

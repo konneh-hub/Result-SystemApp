@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../../middleware/authMiddleware');
-const roleMiddleware = require('../../middleware/roleMiddleware');
+const permissionMiddleware = require('../../middleware/permissionMiddleware');
+const { PERMISSIONS } = require('../../constants/permissions');
 const {
   createDraftResult,
   updateDraftResult,
@@ -14,11 +15,11 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-router.post('/draft', roleMiddleware(['lecturer']), createDraftResult);
-router.put('/:id', roleMiddleware(['lecturer']), updateDraftResult);
-router.post('/submit/:id', roleMiddleware(['lecturer']), submitResult);
-router.post('/approve/:id', roleMiddleware(['hod', 'dean', 'exam_officer']), approveResult);
-router.post('/reject/:id', roleMiddleware(['hod', 'dean', 'exam_officer']), rejectResult);
-router.get('/published/:studentId', roleMiddleware(['student', 'admin', 'staff', 'lecturer', 'hod', 'dean']), getPublishedResults);
+router.post('/draft', permissionMiddleware([PERMISSIONS.RESULTS.CREATE_DRAFT]), createDraftResult);
+router.put('/:id', permissionMiddleware([PERMISSIONS.RESULTS.UPDATE_DRAFT]), updateDraftResult);
+router.post('/submit/:id', permissionMiddleware([PERMISSIONS.RESULTS.SUBMIT]), submitResult);
+router.post('/approve/:id', permissionMiddleware([PERMISSIONS.RESULTS.APPROVE]), approveResult);
+router.post('/reject/:id', permissionMiddleware([PERMISSIONS.RESULTS.REJECT]), rejectResult);
+router.get('/published/:studentId', permissionMiddleware([PERMISSIONS.RESULTS.VIEW_PUBLISHED]), getPublishedResults);
 
 module.exports = router;

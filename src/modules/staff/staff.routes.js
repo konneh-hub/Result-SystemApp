@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../../middleware/authMiddleware');
-const roleMiddleware = require('../../middleware/roleMiddleware');
+const permissionMiddleware = require('../../middleware/permissionMiddleware');
+const { PERMISSIONS } = require('../../constants/permissions');
 const {
   getStaff,
   createStaff,
@@ -11,11 +12,10 @@ const {
 const router = express.Router();
 
 router.use(authMiddleware);
-router.use(roleMiddleware(['admin', 'hod', 'dean']));
 
-router.get('/', getStaff);
-router.post('/', roleMiddleware(['admin']), createStaff);
-router.put('/:id', roleMiddleware(['admin', 'hod']), updateStaff);
-router.delete('/:id', roleMiddleware(['admin']), deleteStaff);
+router.get('/', permissionMiddleware([PERMISSIONS.STAFF.READ]), getStaff);
+router.post('/', permissionMiddleware([PERMISSIONS.STAFF.CREATE]), createStaff);
+router.put('/:id', permissionMiddleware([PERMISSIONS.STAFF.UPDATE]), updateStaff);
+router.delete('/:id', permissionMiddleware([PERMISSIONS.STAFF.DELETE]), deleteStaff);
 
 module.exports = router;

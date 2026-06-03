@@ -1,8 +1,10 @@
 const { hasPermission, hasAnyPermission, hasAllPermissions } = require('../services/permissionService');
+const ForbiddenError = require('../exceptions/ForbiddenError');
+const UnauthorizedError = require('../exceptions/UnauthorizedError');
 
 const permissionMiddleware = (requiredPermissions = [], requireAll = false) => (req, res, next) => {
   if (!req.user || !req.user.role) {
-    return res.status(401).json({ message: 'Authentication required' });
+    return next(new UnauthorizedError('Authentication required'));
   }
 
   if (!requiredPermissions || requiredPermissions.length === 0) {
@@ -14,7 +16,7 @@ const permissionMiddleware = (requiredPermissions = [], requireAll = false) => (
     : hasAnyPermission(req.user.role, requiredPermissions);
 
   if (!hasAccess) {
-    return res.status(403).json({ message: 'Insufficient permissions for this action' });
+    return next(new ForbiddenError('Insufficient permissions for this action'));
   }
 
   next();

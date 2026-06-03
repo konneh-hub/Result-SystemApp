@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../../middleware/authMiddleware');
-const roleMiddleware = require('../../middleware/roleMiddleware');
+const permissionMiddleware = require('../../middleware/permissionMiddleware');
+const { PERMISSIONS } = require('../../constants/permissions');
 const {
   getCourses,
   createCourse,
@@ -13,10 +14,10 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-router.get('/', roleMiddleware(['admin', 'staff', 'lecturer', 'hod', 'dean', 'student']), getCourses);
-router.post('/', roleMiddleware(['admin', 'staff']), createCourse);
-router.put('/:id', roleMiddleware(['admin', 'staff']), updateCourse);
-router.delete('/:id', roleMiddleware(['admin', 'staff']), deleteCourse);
-router.post('/assign', roleMiddleware(['admin', 'staff']), assignLecturer);
+router.get('/', permissionMiddleware([PERMISSIONS.COURSES.READ]), getCourses);
+router.post('/', permissionMiddleware([PERMISSIONS.COURSES.CREATE]), createCourse);
+router.put('/:id', permissionMiddleware([PERMISSIONS.COURSES.UPDATE]), updateCourse);
+router.delete('/:id', permissionMiddleware([PERMISSIONS.COURSES.DELETE]), deleteCourse);
+router.post('/assign', permissionMiddleware([PERMISSIONS.COURSES.ASSIGN_LECTURER]), assignLecturer);
 
 module.exports = router;
