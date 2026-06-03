@@ -1,0 +1,11 @@
+import React from 'react';
+import { Box, Typography } from '@mui/material';
+
+const LecturerProfilePage = () => (
+  <Box>
+    <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>My Profile</Typography>
+    <Typography>Coming soon - Lecturer profile interface</Typography>
+  </Box>
+);
+
+export default LecturerProfilePage;
